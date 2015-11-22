@@ -1,4 +1,4 @@
-;/*! mdejs 18-11-2015 */
+;/*! mdejs 23-11-2015 */
 (function ( $ ) {
     $.fn.mdejs = function(options) {
         var re = window.RegExp,
@@ -314,7 +314,7 @@
             console.log(options);
 
             this.buttonBar = document.createElement("div");
-            this.buttonBar.className = "wmd-button-bar";
+            this.buttonBar.className = "mde-toolbar";
             this.input.parentNode.insertBefore(this.buttonBar, this.input);
         }
 
