@@ -1,0 +1,38 @@
+{
+  "name": "mdejs",
+  "description": "jQuery Markdown Editor written in Javascript. Forked from pagedown and used showdown converter",
+  "homepage": "https://github.com/meniam/mdejs",
+  "authors": [
+    "Eugene Myazin (https://github.com/meniam)"
+  ],
+  "main": ["dist/mdejs.js"],
+  "ignore": [
+    ".editorconfig",
+    ".gitattributes",
+    ".gitignore",
+    ".jscs.json",
+    ".jshintignore",
+    ".jshintrc",
+    ".travis.yml",
+    "Gruntfile.js",
+    "package.json",
+    "src/*",
+    "test/*"
+  ],
+  "dependencies": {
+    "showdown": "~1.3.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/meniam/mdejs.git"
+  },
+  "keywords": [
+    "mde",
+    "mdejs",
+    "markdown",
+    "editor",
+    "md",
+    "mdown"
+  ],
+  "license": "https://github.com/meniam/mdejs/blob/master/license.txt"
+}
