@@ -313,7 +313,7 @@
             console.log(options);
 
             this.buttonBar = document.createElement("div");
-            this.buttonBar.className = "wmd-button-bar";
+            this.buttonBar.className = "mde-toolbar";
             this.input.parentNode.insertBefore(this.buttonBar, this.input);
         }
 
