@@ -15,6 +15,7 @@
         // links.
         var imageDefaultText = "http://";
         var linkDefaultText = "http://";
+        var undoManager;
 
         var defaults = {
             textColor: "#000",
@@ -270,7 +271,6 @@
         };
 
         position.getPageSize = function () {
-
             var scrollWidth, scrollHeight;
             var innerWidth, innerHeight;
 
@@ -307,18 +307,16 @@
 
         function PanelCollection(element, options) {
             this.input = element[0];
-            console.log(options);
+            //console.log(options);
             this.preview = document.getElementsByClassName(options.preview_class)[0];
 
-            console.log(options);
+            //console.log(options);
 
             this.buttonBar = document.createElement("div");
             this.buttonBar.className = "mde-toolbar";
             this.input.parentNode.insertBefore(this.buttonBar, this.input);
         }
 
-
-        var undoManager;
 
         // options, if given, can have the following properties:
         //   options.helpButton = { handler: yourEventHandler }
@@ -364,6 +362,7 @@
                 var previewManager = new PreviewManager(markdownConverter, panel, function () {
                     //hooks.onPreviewRefresh();
                 });
+
                 if (!/\?noundo/.test(document.location.href)) {
                     undoManager = new UndoManager(function () {
                         previewManager.refresh();
@@ -388,167 +387,65 @@
 
         }
 
-        // This simulates a modal dialog box and asks for the URL when you
-        // click the hyperlink or image buttons.
-        //
         // text: The html for the input box.
         // defaultInputText: The default value that appears in the input box.
         // callback: The function which is executed when the prompt is dismissed, either via OK or Cancel.
         //      It receives a single argument; either the entered text (if OK was chosen) or null (if Cancel
         //      was chosen).
         ui.prompt = function (text, defaultInputText, callback) {
+            $('<div id="mdejs-prompt-dialog" class="modal fade" tabindex="-1" role="dialog">' +
+                '<div class="modal-dialog modal-md">' +
+                '<div class="modal-content"><form class="mde-dialog-form">' +
+                '<div class="modal-body">' + text +
+                '<div class="input-group input-group-sm" style="width:100%">' +
+                '<input class="form-control mde-dialog-input" type="text" value="' + defaultInputText + '">' +
+                '</div>' +
+                '</div>' +
 
-            // These variables need to be declared at this level since they are used
-            // in multiple functions.
-            var dialog;         // The dialog box.
-            var input;         // The text box where you enter the hyperlink.
+                '<div class="modal-footer">' +
+                '<button type="button" class="btn btn-primary mde-process-modal">Ok</button>' +
+                '<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>' +
+                '</div>' +
 
+                '</form></div>' +
+                '</div></div>').appendTo($(document.body));
 
-            if (defaultInputText === undefined) {
-                defaultInputText = "";
-            }
+            var modalWindow = $('#mdejs-prompt-dialog');
 
-            // Used as a keydown event handler. Esc dismisses the prompt.
-            // Key code 27 is ESC.
-            var checkEscape = function (key) {
-                var code = (key.charCode || key.keyCode);
-                if (code === 27) {
-                    if (key.stopPropagation) key.stopPropagation();
-                    close(true);
+            modalWindow.on('shown.bs.modal', function () {
+                $('.mde-dialog-input').focus();
+
+                // Move caret at the end
+                var val = $('.mde-dialog-input').val();
+                $('.mde-dialog-input').val('');
+                $('.mde-dialog-input').val(val);
+
+                $('.mde-dialog-form', $(this)).submit(function () {
+                    processForm();
+                    modalWindow.modal('hide');
                     return false;
+                });
+            });
+
+            $('.mde-process-modal', modalWindow).click(function () {
+                processForm();
+                modalWindow.modal('hide');
+            });
+
+            $('#mdejs-prompt-dialog').on('hide.bs.modal', function () {
+                modalWindow.remove();
+            });
+
+            $('#mdejs-prompt-dialog').modal();
+
+            processForm = function () {
+                // Fixes common pasting errors.
+                text = $('.mde-dialog-input').val().replace(/^http:\/\/(https?|ftp):\/\//, '$1://');
+                if (!/^(?:https?|ftp):\/\//.test(text)) {
+                    text = 'http://' + text;
                 }
-            };
-
-            // Dismisses the hyperlink input box.
-            // isCancel is true if we don't care about the input text.
-            // isCancel is false if we are going to keep the text.
-            var close = function (isCancel) {
-                util.removeEvent(document.body, "keyup", checkEscape);
-                var text = input.value;
-
-                if (isCancel) {
-                    text = null;
-                }
-                else {
-                    // Fixes common pasting errors.
-                    text = text.replace(/^http:\/\/(https?|ftp):\/\//, '$1://');
-                    if (!/^(?:https?|ftp):\/\//.test(text))
-                        text = 'http://' + text;
-                }
-
-                dialog.parentNode.removeChild(dialog);
-
                 callback(text);
-                return false;
             };
-
-
-            // Create the text input box form/window.
-            var createDialog = function () {
-
-                // The main dialog box.
-                dialog = document.createElement("div");
-                dialog.className = "wmd-prompt-dialog";
-                dialog.style.padding = "10px;";
-                dialog.style.position = "fixed";
-                dialog.style.width = "400px";
-                dialog.style.zIndex = "1001";
-
-                // The dialog text.
-                var question = document.createElement("div");
-                question.innerHTML = text;
-                question.style.padding = "5px";
-                dialog.appendChild(question);
-
-                // The web form container for the text box and buttons.
-                var form = document.createElement("form"),
-                    style = form.style;
-                form.onsubmit = function () {
-                    return close(false);
-                };
-                style.padding = "0";
-                style.margin = "0";
-                style.cssFloat = "left";
-                style.width = "100%";
-                style.textAlign = "center";
-                style.position = "relative";
-                dialog.appendChild(form);
-
-                // The input text box
-                input = document.createElement("input");
-                input.type = "text";
-                input.value = defaultInputText;
-                style = input.style;
-                style.display = "block";
-                style.width = "80%";
-                style.marginLeft = style.marginRight = "auto";
-                form.appendChild(input);
-
-                // The ok button
-                var okButton = document.createElement("input");
-                okButton.type = "button";
-                okButton.onclick = function () {
-                    return close(false);
-                };
-                okButton.value = "OK";
-                style = okButton.style;
-                style.margin = "10px";
-                style.display = "inline";
-                style.width = "7em";
-
-
-                // The cancel button
-                var cancelButton = document.createElement("input");
-                cancelButton.type = "button";
-                cancelButton.onclick = function () {
-                    return close(true);
-                };
-                cancelButton.value = "Cancel";
-                style = cancelButton.style;
-                style.margin = "10px";
-                style.display = "inline";
-                style.width = "7em";
-
-                form.appendChild(okButton);
-                form.appendChild(cancelButton);
-
-                util.addEvent(document.body, "keyup", checkEscape);
-                dialog.style.top = "50%";
-                dialog.style.left = "50%";
-                dialog.style.display = "block";
-                if (ua.isIE_5or6) {
-                    dialog.style.position = "absolute";
-                    dialog.style.top = document.documentElement.scrollTop + 200 + "px";
-                    dialog.style.left = "50%";
-                }
-                document.body.appendChild(dialog);
-
-                // This has to be done AFTER adding the dialog to the form if you
-                // want it to be centered.
-                dialog.style.marginTop = -(position.getHeight(dialog) / 2) + "px";
-                dialog.style.marginLeft = -(position.getWidth(dialog) / 2) + "px";
-
-            };
-
-            // Why is this in a zero-length timeout?
-            // Is it working around a browser bug?
-            setTimeout(function () {
-                createDialog();
-
-                var defTextLen = defaultInputText.length;
-                if (input.selectionStart !== undefined) {
-                    input.selectionStart = 0;
-                    input.selectionEnd = defTextLen;
-                } else if (input.createTextRange) {
-                    var range = input.createTextRange();
-                    range.collapse(false);
-                    range.moveStart("character", -defTextLen);
-                    range.moveEnd("character", defTextLen);
-                    range.select();
-                }
-
-                input.focus();
-            }, 0);
         };
 
         // before: contains all the text in the input box BEFORE the selection.
@@ -845,22 +742,18 @@
                         // 33 - 40: page up/dn and arrow keys
                         // 63232 - 63235: page up/dn and arrow keys on safari
                         setMode("moving");
-                    }
-                    else if (keyCode == 8 || keyCode == 46 || keyCode == 127) {
+                    } else if (keyCode == 8 || keyCode == 46 || keyCode == 127) {
                         // 8: backspace
                         // 46: delete
                         // 127: delete
                         setMode("deleting");
-                    }
-                    else if (keyCode == 13) {
+                    } else if (keyCode == 13) {
                         // 13: Enter
                         setMode("newlines");
-                    }
-                    else if (keyCode == 27) {
+                    } else if (keyCode == 27) {
                         // 27: escape
                         setMode("escape");
-                    }
-                    else if ((keyCode < 16 || keyCode > 20) && keyCode != 91) {
+                    } else if ((keyCode < 16 || keyCode > 20) && keyCode != 91) {
                         // 16-20 are shift, etc.
                         // 91: left window key
                         // I think this might be a little messed up since there are
@@ -1210,10 +1103,10 @@
                     }, 0);
                 } else {
 
-                    console.log("fullTop");
-                    console.log(fullTop);
-                    console.log("eTop");
-                    console.log(emptyTop);
+                    //console.log("fullTop");
+                    //console.log(fullTop);
+                    //console.log("eTop");
+                    //console.log(emptyTop);
                     window.scrollBy(0, fullTop - emptyTop);
                 }
             };
@@ -1253,66 +1146,20 @@
                     var keyCodeStr = String.fromCharCode(keyCode).toLowerCase();
 
                     $.each(panelButtons, function (i, button) {
-                       if (button.hotkey && button.hotkey.toLowerCase() == keyCodeStr) {
-                           doClick(buttons[i]);
-                       }
+                        if (button.hotkey && button.hotkey.toLowerCase() == keyCodeStr) {
+                            doClick(buttons[i]);
+                            key.preventDefault();
+                        }
                     });
 
-
-                    //switch (keyCodeStr) {
-                    //    case "b":
-                    //        doClick(buttons.bold);
-                    //        break;
-                    //    case "i":
-                    //        doClick(buttons.italic);
-                    //        break;
-                    //    case "l":
-                    //        doClick(buttons.link);
-                    //        break;
-                    //    case "q":
-                    //        doClick(buttons.quote);
-                    //        break;
-                    //    case "k":
-                    //        doClick(buttons.code);
-                    //        break;
-                    //    case "g":
-                    //        doClick(buttons.image);
-                    //        break;
-                    //    case "o":
-                    //        doClick(buttons.olist);
-                    //        break;
-                    //    case "u":
-                    //        doClick(buttons.ulist);
-                    //        break;
-                    //    case "h":
-                    //        doClick(buttons.heading);
-                    //        break;
-                    //    case "r":
-                    //        doClick(buttons.hr);
-                    //        break;
-                    //    case "y":
-                    //        doClick(buttons.redo);
-                    //        break;
-                    //    case "z":
-                    //        if (key.shiftKey) {
-                    //            doClick(buttons.redo);
-                    //        }
-                    //        else {
-                    //            doClick(buttons.undo);
-                    //        }
-                    //        break;
-                    //    default:
-                    //        return;
+                    //if (key.preventDefault) {
+                    //    key.preventDefault();
                     //}
 
-
-                    if (key.preventDefault) {
-                        key.preventDefault();
-                    }
-
-                    if (window.event) {
-                        window.event.returnValue = false;
-                    }
+                    //if (window.event) {
+                    //    window.event.returnValue = false;
+                    //}
+                    return null;
                 }
             });
 
@@ -1332,8 +1179,7 @@
             // special handler because IE clears the context of the textbox on ESC
             if (ua.isIE) {
                 util.addEvent(inputBox, "keydown", function (key) {
-                    var code = key.keyCode;
-                    if (code === 27) {
+                    if (key.keyCode === 27) {
                         return false;
                     }
                 });
@@ -1758,15 +1604,15 @@
 
                 return title ? link + ' "' + title + '"' : link;
             });
-        }
+        };
 
         commandProto.doLink = function (chunk, postProcessing) {
             this.doLinkOrImage(chunk, postProcessing, false);
-        }
+        };
 
         commandProto.doImage = function (chunk, postProcessing) {
             this.doLinkOrImage(chunk, postProcessing, true);
-        }
+        };
 
         commandProto.doLinkOrImage = function (chunk, postProcessing, isImage) {
 
@@ -1841,7 +1687,7 @@
 
                 if (isImage) {
                     //if (!this.hooks.insertImageDialog(linkEnteredCallback))
-                        ui.prompt(this.getString("imagedialog"), imageDefaultText, linkEnteredCallback);
+                    ui.prompt(this.getString("imagedialog"), imageDefaultText, linkEnteredCallback);
                 }
                 else {
                     ui.prompt(this.getString("linkdialog"), linkDefaultText, linkEnteredCallback);

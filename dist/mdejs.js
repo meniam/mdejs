@@ -1,4 +1,4 @@
-;/*! mdejs 23-11-2015 */
+;/*! mdejs 03-02-2016 */
 (function ( $ ) {
     $.fn.mdejs = function(options) {
         var re = window.RegExp,
@@ -1147,10 +1147,10 @@
                     var keyCodeStr = String.fromCharCode(keyCode).toLowerCase();
 
                     $.each(panelButtons, function (i, button) {
-                       if (button.hotkey && button.hotkey.toLowerCase() == keyCodeStr) {
-                           doClick(buttons[i]);
-                           key.preventDefault();
-                       }
+                        if (button.hotkey && button.hotkey.toLowerCase() == keyCodeStr) {
+                            doClick(buttons[i]);
+                            key.preventDefault();
+                        }
                     });
 
                     //if (key.preventDefault) {
@@ -1688,7 +1688,7 @@
 
                 if (isImage) {
                     //if (!this.hooks.insertImageDialog(linkEnteredCallback))
-                        ui.prompt(this.getString("imagedialog"), imageDefaultText, linkEnteredCallback);
+                    ui.prompt(this.getString("imagedialog"), imageDefaultText, linkEnteredCallback);
                 }
                 else {
                     ui.prompt(this.getString("linkdialog"), linkDefaultText, linkEnteredCallback);
@@ -2132,6 +2132,5 @@
         return this;
     };
 }( jQuery ));
-
 
 //# sourceMappingURL=mdejs.js.map
