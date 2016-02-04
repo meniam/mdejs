@@ -1,0 +1,25 @@
+.btn-toolbar .btn
+{
+    border: none !important;
+    padding: 6px 8px !important;;
+}
+
+.btn-toolbar .btn:hover
+{
+    background: none !important;
+}
+
+.btn-toolbar .btn:hover i{
+    color: #FF9900 !important;
+}
+
+.mde-input
+{
+    height: 300px;
+    width: 100%;
+    border: 1px solid #ccc;
+}
+
+.mde-input:focus {
+    outline: none;
+}

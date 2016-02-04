@@ -19,7 +19,6 @@
 
         var defaults = {
             textColor: "#000",
-
             toolbars: [
                 {
                     panels: [
@@ -53,7 +52,7 @@
                                 },
                                 {
                                     name : "hr",
-                                    hotkey: "r",
+                                    hotkey: "",
                                     icon: "fa fa-ellipsis-h",
                                     css_class : "",
                                     action: "doHorizontalRule"
@@ -270,41 +269,6 @@
             return elem.offsetWidth || elem.scrollWidth;
         };
 
-        position.getPageSize = function () {
-            var scrollWidth, scrollHeight;
-            var innerWidth, innerHeight;
-
-            // It's not very clear which blocks work with which browsers.
-            if (self.innerHeight && self.scrollMaxY) {
-                scrollWidth = document.body.scrollWidth;
-                scrollHeight = self.innerHeight + self.scrollMaxY;
-            } else if (document.body.scrollHeight > document.body.offsetHeight) {
-                scrollWidth = document.body.scrollWidth;
-                scrollHeight = document.body.scrollHeight;
-            } else {
-                scrollWidth = document.body.offsetWidth;
-                scrollHeight = document.body.offsetHeight;
-            }
-
-            if (self.innerHeight) {
-                // Non-IE browser
-                innerWidth = self.innerWidth;
-                innerHeight = self.innerHeight;
-            } else if (doc.documentElement && doc.documentElement.clientHeight) {
-                // Some versions of IE (IE 6 w/ a DOCTYPE declaration)
-                innerWidth = doc.documentElement.clientWidth;
-                innerHeight = doc.documentElement.clientHeight;
-            } else if (document.body) {
-                // Other versions of IE
-                innerWidth = document.body.clientWidth;
-                innerHeight = document.body.clientHeight;
-            }
-
-            var maxWidth = Math.max(scrollWidth, innerWidth);
-            var maxHeight = Math.max(scrollHeight, innerHeight);
-            return [maxWidth, maxHeight, innerWidth, innerHeight];
-        };
-
         function PanelCollection(element, options) {
             this.input = element[0];
             //console.log(options);
@@ -339,6 +303,7 @@
         function Editor (markdownConverter, options) {
             options = options || {};
             options.lang = options.lang || {};
+            options.helpButton = options.helpButton || {};
 
             var getString = function (identifier) {
                 return options.lang[identifier] || defaults.lang[identifier];
@@ -413,12 +378,12 @@
             var modalWindow = $('#mdejs-prompt-dialog');
 
             modalWindow.on('shown.bs.modal', function () {
-                $('.mde-dialog-input').focus();
+                var mdeDialogInput = $('.mde-dialog-input');
+                mdeDialogInput.focus();
 
                 // Move caret at the end
-                var val = $('.mde-dialog-input').val();
-                $('.mde-dialog-input').val('');
-                $('.mde-dialog-input').val(val);
+                var val = mdeDialogInput.val();
+                mdeDialogInput.val('').val(val);
 
                 $('.mde-dialog-form', $(this)).submit(function () {
                     processForm();
@@ -432,13 +397,13 @@
                 modalWindow.modal('hide');
             });
 
-            $('#mdejs-prompt-dialog').on('hide.bs.modal', function () {
+            modalWindow.on('hide.bs.modal', function () {
                 modalWindow.remove();
             });
 
-            $('#mdejs-prompt-dialog').modal();
+            modalWindow.modal();
 
-            processForm = function () {
+            var processForm = function () {
                 // Fixes common pasting errors.
                 text = $('.mde-dialog-input').val().replace(/^http:\/\/(https?|ftp):\/\//, '$1://');
                 if (!/^(?:https?|ftp):\/\//.test(text)) {
@@ -956,21 +921,6 @@
                 util.addEvent(inputElem, "keydown", listener);
             };
 
-            var getDocScrollTop = function ()
-            {
-                var result = 0;
-
-                if (window.innerHeight) {
-                    result = window.pageYOffset;
-                } else if (document.documentElement && document.documentElement.scrollTop) {
-                    result = document.documentElement.scrollTop;
-                } else if (document.body) {
-                    result = document.body.scrollTop;
-                }
-
-                return result;
-            };
-
             var makePreviewHtml = function () {
                 if (!panels.preview) {
                     return;
@@ -1068,8 +1018,9 @@
             var previewSetter;
 
             var previewSet = function (text) {
-                if (previewSetter)
+                if (previewSetter) {
                     return previewSetter(text);
+                }
 
                 try {
                     nonSuckyBrowserPreviewSet(text);
@@ -1081,7 +1032,8 @@
             };
 
             var pushPreviewHtml = function (text) {
-                var emptyTop = position.getTop(panels.input) - getDocScrollTop();
+                var docScrollTop = $(document).scrollTop();
+                var emptyTop = position.getTop(panels.input) - docScrollTop;
 
                 if (panels.preview) {
                     previewSet(text);
@@ -1095,18 +1047,13 @@
                     return;
                 }
 
-                var fullTop = position.getTop(panels.input) - getDocScrollTop();
+                var fullTop = position.getTop(panels.input) - docScrollTop;
 
                 if (ua.isIE) {
                     setTimeout(function () {
                         window.scrollBy(0, fullTop - emptyTop);
                     }, 0);
                 } else {
-
-                    //console.log("fullTop");
-                    //console.log(fullTop);
-                    //console.log("eTop");
-                    //console.log(emptyTop);
                     window.scrollBy(0, fullTop - emptyTop);
                 }
             };
@@ -1125,8 +1072,6 @@
 
         function UIManager(options, panels, previewManager, commandManager, helpOptions, getString)
         {
-            //var undoManager = null;
-
             var inputBox = panels.input,
                 panelButtons = {},
                 buttons = {}; // buttons.undo, buttons.link, etc. The actual DOM elements.
@@ -1141,7 +1086,6 @@
             $(inputBox).on(keyEvent, function (key) {
                 // Check to see if we have a button key and, if so execute the callback.
                 if ((key.ctrlKey || key.metaKey) && !key.altKey && !key.shiftKey) {
-
                     var keyCode = key.charCode || key.keyCode;
                     var keyCodeStr = String.fromCharCode(keyCode).toLowerCase();
 
@@ -1152,13 +1096,6 @@
                         }
                     });
 
-                    //if (key.preventDefault) {
-                    //    key.preventDefault();
-                    //}
-
-                    //if (window.event) {
-                    //    window.event.returnValue = false;
-                    //}
                     return null;
                 }
             });
@@ -1220,7 +1157,6 @@
                     // no real workaround.  Only the image and link code
                     // create dialogs and require the function pointers.
                     var fixupInputArea = function () {
-
                         inputBox.focus();
 
                         if (chunks) {
@@ -1230,7 +1166,6 @@
                         state.restore();
                         previewManager.refresh();
                     };
-
 
                     var noCleanup = button.textOp(chunks, fixupInputArea);
 
