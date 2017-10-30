@@ -1,6 +1,6 @@
 {
   "name": "mdejs",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "jQuery Markdown Editor written in Javascript. Forked from pagedown and used showdown converter",
   "author": "Eugene Myazin",
   "homepage": "http://github.com/meniam/mdejs",
@@ -13,7 +13,7 @@
     "url": "git+https://github.com/meniam/mdejs.git",
     "web": "https://github.com/meniam/mdejs"
   },
-  "license": "BSD-2-Clause",
+  "license": "MIT",
   "main": "./dist/mde.js",
   "devDependencies": {
     "chai": "^1.10.0",
