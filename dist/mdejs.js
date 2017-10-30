@@ -1,4 +1,4 @@
-;/*! mdejs 04-02-2016 */
+;/*! mdejs 30-10-2017 */
 (function ( $ ) {
     $.fn.mdejs = function(options) {
         var re = window.RegExp,
