@@ -22,18 +22,18 @@
     "grunt-contrib-concat": "^0.5.0",
     "grunt-contrib-uglify": "^0.6.0",
     "grunt-endline": "^0.4.0",
-    "js-beautify": "^1.7.4",
+    "js-beautify": "^1.7.5",
     "load-grunt-tasks": "^3.5.2",
     "quiet-grunt": "^0.2.3",
-    "semver": "^5.4.1",
+    "semver": "^5.5.0",
     "sinon": "^1.17.7",
     "source-map-support": "^0.2.9"
   },
   "dependencies": {
     "bootstrap": "^3.3.5",
     "fontawesome": "^4.7.0",
-    "jquery": "~2.2.0",
-    "showdown": "^1.8.0",
+    "jquery": "~3.0.0",
+    "showdown": "^1.8.6",
     "yargs": "^3.15.0"
   },
   "bugs": {
